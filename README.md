@@ -62,22 +62,3 @@ docker compose up -d --build
 * **Pasarela Simulada:** [http://localhost:5000/provider/refunds](http://localhost:5000/provider/refunds)
 * **Grafana (Explore):** [http://localhost:3001](http://localhost:3001) *(Usuario: `admin` / Clave: `admin`)*
 
----
-
-## 📚 Documentación en el Vault de Obsidian
-
-La documentación técnica exhaustiva del proyecto se encuentra estructurada en el Obsidian Vault (`Bovedas_obsidian/Proyecto_I_Paradigmas`):
-
-* `00-Requerimientos/requerimientos-funcionales.md`: Especificación de RF-01 a RF-05 y RNF-01 a RNF-05 con matriz de trazabilidad.
-* `00-Requerimientos/lab-grafana-observabilidad.md`: Arquitectura de observabilidad, Loki push logger y consultas LogQL.
-* `01-Diseno/arquitectura-y-servicios.md`: Diagramas de arquitectura ASCII, secuencias Mermaid y topología de red.
-* `01-Diseno/flujo-estados-reembolso.md`: Máquina de estados, invariantes y garantías de idempotencia.
-* `01-Diseno/contratos-api-y-webhooks.md`: Esquemas de payloads JSON y códigos HTTP.
-* `02-Backlog/tareas-implementacion.md`: Plan de trabajo con las 6 fases completadas al 100%.
-* `03-Documentacion/fundamentos-paradigmas-y-resiliencia.md`: Fundamentos del paradigma asíncrono, Event Loop y resiliencia.
-* `03-Documentacion/guia-despliegue-y-ejecucion.md`: Guía de ejecución, solución de problemas y comandos de verificación.
-* `03-Documentacion/guia-observabilidad-grafana-loki.md`: Guía detallada de observabilidad, credenciales y consultas LogQL en Grafana.
-* `03-Documentacion/matriz-casos-de-prueba.md`: Casos CP-01 a CP-07 para sustentación técnica.
-* `03-Documentacion/cheat-sheet-comandos.md`: Comandos prácticos de Docker, curl y SQL.
-* `03-Documentacion/stack-tecnologico.md`: Detalle del stack y configuración de contenedores.
-* `04-Exposicion/guion-demo-en-vivo.md`: Guion cronometrado minuto a minuto para la defensa oral de 10 minutos.
