@@ -13,7 +13,7 @@ export interface ProviderRefundResult {
 
 @Injectable()
 export class RefundsService {
-  private readonly logger = new Logger(RefundsService.name);
+  private readonly logger = new Logger('PROVIDER');
 
   constructor(
     private readonly httpService: HttpService,
@@ -26,7 +26,7 @@ export class RefundsService {
   processRefundAsync(dto: ProcessRefundDto): void {
     this.executeAsyncSimulation(dto).catch((error: any) => {
       this.logger.error(
-        `[PROVIDER] Error no controlado durante simulación para transacción ${dto.transactionId}: ${error?.message}`,
+        `[PROVIDER] Error no controlado durante simulación para TRX: ${dto.transactionId}: ${error?.message}`,
         error?.stack,
       );
     });

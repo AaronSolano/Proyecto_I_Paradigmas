@@ -4,7 +4,7 @@ import { RefundsService } from './refunds.service';
 
 @Injectable()
 export class RefundsScheduler {
-  private readonly logger = new Logger(RefundsScheduler.name);
+  private readonly logger = new Logger('REFUND-JOB');
   private isRunning = false;
 
   constructor(private readonly refundsService: RefundsService) {}
@@ -16,7 +16,7 @@ export class RefundsScheduler {
   async handleCron(): Promise<void> {
     if (this.isRunning) {
       this.logger.debug(
-        'Ciclo anterior de Background Job aún en progreso. Saltando tick...',
+        '[REFUND-JOB] Ciclo anterior de Background Job aún en progreso. Saltando tick...',
       );
       return;
     }
@@ -26,7 +26,7 @@ export class RefundsScheduler {
       await this.refundsService.processPendingRefunds();
     } catch (error: any) {
       this.logger.error(
-        `Error inesperado en Background Job de reembolsos: ${error?.message}`,
+        `[REFUND-JOB] Error inesperado en Background Job de reembolsos: ${error?.message}`,
       );
     } finally {
       this.isRunning = false;

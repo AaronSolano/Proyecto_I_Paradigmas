@@ -1,0 +1,114 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: refund-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - refund-network
+
+  fake-provider:
+    build:
+      context: ./fake-provider
+      dockerfile: Dockerfile
+    container_name: refund-fake-provider
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      LOKI_URL: http://loki:3100
+    ports:
+      - "5000:5000"
+    networks:
+      - refund-network
+
+  refund-service:
+    build:
+      context: ./refund-service
+      dockerfile: Dockerfile
+    container_name: refund-service
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: postgres
+      DB_SSL: "false"
+      DB_SYNCHRONIZE: "true"
+      PROVIDER_URL: http://fake-provider:5000
+      WEBHOOK_CALLBACK_URL: http://refund-service:4000/api/webhooks/refund
+      LOKI_URL: http://loki:3100
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+      fake-provider:
+        condition: service_started
+    networks:
+      - refund-network
+
+  frontend-dashboard:
+    build:
+      context: ./frontend-dashboard
+      dockerfile: Dockerfile
+    container_name: refund-frontend-dashboard
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      refund-service:
+        condition: service_started
+    networks:
+      - refund-network
+
+  loki:
+    image: grafana/loki:2.9.8
+    container_name: refund-loki
+    restart: unless-stopped
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - refund-network
+
+  grafana:
+    image: grafana/grafana:10.4.6
+    container_name: refund-grafana
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - loki
+    networks:
+      - refund-network
+
+networks:
+  refund-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

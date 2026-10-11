@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsPositive, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  IsString,
+} from 'class-validator';
 
 export class CreateRefundDto {
   @IsString({ message: 'transactionId debe ser una cadena de texto' })
@@ -11,4 +18,9 @@ export class CreateRefundDto {
   )
   @IsPositive({ message: 'amount debe ser mayor a 0' })
   amount: number;
+
+  @IsOptional()
+  @IsBoolean({ message: 'forceFailure debe ser un booleano' })
+  forceFailure?: boolean;
 }
+

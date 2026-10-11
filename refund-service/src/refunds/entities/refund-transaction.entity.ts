@@ -52,6 +52,9 @@ export class RefundTransaction {
   @Column({ type: 'varchar', length: 128, nullable: true, default: null })
   providerRefundId: string | null;
 
+  @Column({ type: 'boolean', default: false })
+  forceFailure: boolean;
+
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt: Date;
 

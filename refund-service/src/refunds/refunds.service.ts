@@ -18,7 +18,8 @@ import { WebhookRefundDto } from './dto/webhook-refund.dto';
 
 @Injectable()
 export class RefundsService {
-  private readonly logger = new Logger(RefundsService.name);
+  private readonly refundJobLogger = new Logger('REFUND-JOB');
+  private readonly webhookLogger = new Logger('WEBHOOK');
 
   constructor(
     @InjectRepository(RefundTransaction)
@@ -50,11 +51,12 @@ export class RefundsService {
       attempts: 0,
       lastAttempt: null,
       providerRefundId: null,
+      forceFailure: createRefundDto.forceFailure ?? false,
     });
 
     const saved = await this.refundRepository.save(refund);
-    this.logger.log(
-      `Reembolso registrado exitosamente: ${saved.transactionId} por $${saved.amount}`,
+    this.refundJobLogger.log(
+      `[REFUND-JOB] Transacción TRX: ${saved.transactionId} registrada exitosamente en estado REFUND_PENDING por $${saved.amount}`,
     );
     return saved;
   }
@@ -79,8 +81,8 @@ export class RefundsService {
     });
 
     if (!refund) {
-      this.logger.warn(
-        `Webhook recibido para transacción inexistente: ${dto.transactionId}`,
+      this.webhookLogger.warn(
+        `[WEBHOOK] Notificación recibida para transacción inexistente TRX: ${dto.transactionId}`,
       );
       throw new NotFoundException(
         `Transacción ${dto.transactionId} no encontrada`,
@@ -92,8 +94,8 @@ export class RefundsService {
       refund.status === RefundStatus.REFUNDED ||
       refund.status === RefundStatus.REFUND_FAILED
     ) {
-      this.logger.log(
-        `Webhook ignorado para transacción ya finalizada: ${dto.transactionId} (${refund.status})`,
+      this.webhookLogger.log(
+        `[WEBHOOK] Notificación ignorada para transacción ya finalizada TRX: ${dto.transactionId} (${refund.status})`,
       );
       return { acknowledged: true, message: 'Transacción ya finalizada' };
     }
@@ -104,8 +106,8 @@ export class RefundsService {
         refund.providerRefundId = dto.providerRefundId;
       }
       await this.refundRepository.save(refund);
-      this.logger.log(
-        `Reembolso completado exitosamente: ${refund.transactionId} (Provider ID: ${refund.providerRefundId})`,
+      this.webhookLogger.log(
+        `[WEBHOOK] Transacción TRX: ${refund.transactionId} completada exitosamente a estado REFUNDED (ProviderRefundId: ${refund.providerRefundId})`,
       );
       return { acknowledged: true };
     }
@@ -118,14 +120,14 @@ export class RefundsService {
     if (newAttempts >= 3) {
       refund.status = RefundStatus.REFUND_FAILED;
       await this.refundRepository.save(refund);
-      this.logger.error(
-        `Reembolso ${refund.transactionId} falló definitivamente tras agotar ${newAttempts} reintentos.`,
+      this.webhookLogger.error(
+        `[WEBHOOK] Transacción TRX: ${refund.transactionId} falló definitivamente tras agotar ${newAttempts}/3 intentos. Estado final: REFUND_FAILED`,
       );
     } else {
       refund.status = RefundStatus.REFUND_PENDING;
       await this.refundRepository.save(refund);
-      this.logger.warn(
-        `Reembolso ${refund.transactionId} falló temporalmente. Reintento programado (${newAttempts}/3).`,
+      this.webhookLogger.warn(
+        `[WEBHOOK] Transacción TRX: ${refund.transactionId} falló temporalmente (${newAttempts}/3 intentos). Reintento programado para siguiente ciclo.`,
       );
     }
 
@@ -151,8 +153,8 @@ export class RefundsService {
       return;
     }
 
-    this.logger.log(
-      `Procesando lote de ${pendingRefunds.length} reembolso(s) pendiente(s)...`,
+    this.refundJobLogger.log(
+      `[REFUND-JOB] Procesando lote de ${pendingRefunds.length} reembolso(s) pendiente(s)...`,
     );
 
     const providerUrl =
@@ -170,23 +172,23 @@ export class RefundsService {
         transactionId: refund.transactionId,
         amount: Number(refund.amount),
         webhookCallbackUrl,
-        forceFailure: false,
+        forceFailure: refund.forceFailure ?? false,
       };
 
       try {
+        this.refundJobLogger.log(
+          `[REFUND-JOB] Despachando reembolso TRX: ${refund.transactionId} por $${refund.amount} al proveedor (Intento ${refund.attempts + 1}/3)...`,
+        );
         await firstValueFrom(
           this.httpService.post(`${providerUrl}/provider/refunds`, payload, {
             timeout: 5000,
           }),
         );
-        this.logger.log(
-          `Despachado a proveedor con éxito: ${refund.transactionId}`,
+        this.refundJobLogger.log(
+          `[REFUND-JOB] Reembolso TRX: ${refund.transactionId} despachado exitosamente al proveedor.`,
         );
       } catch (error: any) {
         // En caso de fallo inmediato de red o indisponibilidad del proveedor
-        this.logger.error(
-          `Error despachando reembolso ${refund.transactionId} al proveedor: ${error?.message}`,
-        );
         const newAttempts = refund.attempts + 1;
         refund.attempts = newAttempts;
         refund.lastAttempt = new Date();
@@ -195,6 +197,10 @@ export class RefundsService {
             ? RefundStatus.REFUND_FAILED
             : RefundStatus.REFUND_PENDING;
         await this.refundRepository.save(refund);
+
+        this.refundJobLogger.error(
+          `[REFUND-JOB] Error despachando reembolso TRX: ${refund.transactionId} al proveedor: ${error?.message}. Nuevo estado: ${refund.status} (Intento ${newAttempts}/3)`,
+        );
       }
     }
   }
