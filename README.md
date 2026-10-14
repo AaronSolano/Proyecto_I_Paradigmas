@@ -50,8 +50,17 @@ chmod +x run.sh
 
 ### Con Docker Compose directo
 ```bash
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
+
+Las imágenes propias están en Docker Hub, en la cuenta `davidma17`:
+
+* `davidma17/refund-service:latest`
+* `davidma17/fake-provider:latest`
+* `davidma17/frontend-dashboard:latest`
+
+PostgreSQL, Loki y Grafana se descargan de sus imágenes oficiales. No hace falta reconstruir el proyecto para ejecutarlo.
 
 ---
 

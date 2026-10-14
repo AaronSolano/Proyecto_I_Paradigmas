@@ -37,7 +37,7 @@ if ($LASTEXITCODE -eq 0) {
 }
 
 Write-Host "[OK] Docker y Docker Compose detectados correctamente." -ForegroundColor Green
-Write-Host "Construyendo y levantando contenedores en red interna..." -ForegroundColor Yellow
+Write-Host "Descargando imagenes de Docker Hub y levantando contenedores..." -ForegroundColor Yellow
 Write-Host ""
 Write-Host "Servicios expuestos al finalizar el arranque:" -ForegroundColor White
 Write-Host " - Frontend Dashboard:    http://localhost:3000" -ForegroundColor Cyan
@@ -48,14 +48,17 @@ Write-Host " - Grafana Observability: http://localhost:3001 (admin/admin)" -Fore
 Write-Host " - Loki Logs API:         http://localhost:3100" -ForegroundColor Cyan
 Write-Host ""
 
-# 4. Ejecución de Docker Compose
-$finalArgs = @("up", "--build")
-if ($ComposeArgs) {
-    $finalArgs += $ComposeArgs
-}
-
+# 4. Descarga las imagenes publicadas y levanta el stack sin reconstruir.
 if ($composeCmd -eq "docker-compose-v2") {
+    & docker compose pull
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $finalArgs = @("up", "-d")
+    if ($ComposeArgs) { $finalArgs += $ComposeArgs }
     & docker compose @finalArgs
 } else {
+    & docker-compose pull
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $finalArgs = @("up", "-d")
+    if ($ComposeArgs) { $finalArgs += $ComposeArgs }
     & docker-compose @finalArgs
 }

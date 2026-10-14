@@ -38,7 +38,7 @@ else
 fi
 
 echo -e "${GREEN}[OK] Docker y Compose verificados exitosamente.${NC}"
-echo -e "${YELLOW}Construyendo y levantando contenedores...${NC}"
+echo -e "${YELLOW}Descargando imagenes de Docker Hub y levantando contenedores...${NC}"
 echo ""
 echo -e "Servicios expuestos al finalizar el arranque:"
 echo -e " - ${BLUE}Frontend Dashboard:${NC}    http://localhost:3000"
@@ -49,5 +49,6 @@ echo -e " - ${BLUE}Grafana Observability:${NC} http://localhost:3001 (admin/admi
 echo -e " - ${BLUE}Loki Logs API:${NC}         http://localhost:3100"
 echo ""
 
-# 4. Ejecución de Docker Compose
-exec $COMPOSE_CMD up --build "$@"
+# 4. Descarga las imagenes publicadas y levanta el stack sin reconstruir.
+$COMPOSE_CMD pull
+exec $COMPOSE_CMD up -d "$@"

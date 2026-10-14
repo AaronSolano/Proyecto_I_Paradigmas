@@ -21,6 +21,7 @@ services:
       - refund-network
 
   fake-provider:
+    image: davidma17/fake-provider:latest
     build:
       context: ./fake-provider
       dockerfile: Dockerfile
@@ -35,6 +36,7 @@ services:
       - refund-network
 
   refund-service:
+    image: davidma17/refund-service:latest
     build:
       context: ./refund-service
       dockerfile: Dockerfile
@@ -63,9 +65,12 @@ services:
       - refund-network
 
   frontend-dashboard:
+    image: davidma17/frontend-dashboard:latest
     build:
       context: ./frontend-dashboard
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:4000
     container_name: refund-frontend-dashboard
     restart: unless-stopped
     environment:
