@@ -7,6 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 
+// Cuerpo de POST /api/refunds.
 export class CreateRefundDto {
   @IsString({ message: 'transactionId debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'transactionId es requerido' })

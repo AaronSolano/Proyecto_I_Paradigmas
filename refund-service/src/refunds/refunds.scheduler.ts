@@ -5,6 +5,7 @@ import { RefundsService } from './refunds.service';
 @Injectable()
 export class RefundsScheduler {
   private readonly logger = new Logger('REFUND-JOB');
+  // Evita que dos ticks del cron procesen el mismo lote a la vez.
   private isRunning = false;
 
   constructor(private readonly refundsService: RefundsService) {}

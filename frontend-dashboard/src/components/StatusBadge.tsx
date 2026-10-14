@@ -5,6 +5,7 @@ interface StatusBadgeProps {
   status: RefundStatus;
 }
 
+// Pastilla de color según el estado del reembolso.
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status }) => {
   switch (status) {
     case 'REFUND_PENDING':

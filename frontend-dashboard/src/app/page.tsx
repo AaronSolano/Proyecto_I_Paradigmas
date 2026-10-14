@@ -13,6 +13,7 @@ import {
 
 const POLLING_INTERVAL_MS = 2500; // 2.5 segundos según especificación
 
+// Página del dashboard: formulario, métricas y tabla con refresco cada 2.5 s.
 export default function DashboardPage() {
   const [refunds, setRefunds] = useState<RefundTransaction[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -21,7 +22,7 @@ export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Consulta al backend GET /api/refunds
+  // Trae la lista. El intervalo y el botón de refresco usan esta misma función.
   const loadRefunds = useCallback(async (isManual = false) => {
     if (isManual) {
       setIsRefreshing(true);
@@ -61,7 +62,7 @@ export default function DashboardPage() {
     };
   }, [loadRefunds]);
 
-  // Manejo de emisión de nuevo reembolso POST /api/refunds
+  // Envía el formulario y mete la orden nueva al inicio de la tabla.
   const handleCreateRefund = async (payload: CreateRefundPayload): Promise<RefundTransaction> => {
     setIsSubmitting(true);
     try {
@@ -77,7 +78,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Cálculo de métricas agregadas
+  // Conteos de la cabecera. La tasa solo mira órdenes ya cerradas.
   const metrics = useMemo<RefundMetrics>(() => {
     const total = refunds.length;
     const pending = refunds.filter((r) => r.status === 'REFUND_PENDING').length;

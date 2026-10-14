@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   description: 'Monitoreo de reembolsos distribuidos y resilientes',
 };
 
+// Marco HTML de la aplicación.
 export default function RootLayout({
   children,
 }: Readonly<{ children: ReactNode }>) {

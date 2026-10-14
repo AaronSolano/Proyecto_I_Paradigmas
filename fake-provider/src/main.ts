@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { LokiLogger } from './common/loki.logger';
 
+// Arranque del proveedor simulado. Las rutas quedan bajo /provider.
 async function bootstrap(): Promise<void> {
   const lokiLogger = new LokiLogger('Bootstrap', 'fake-provider');
   const app = await NestFactory.create(AppModule, {

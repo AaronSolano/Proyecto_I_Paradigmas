@@ -1,5 +1,6 @@
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 
+// Lo que envía el job: datos de la orden y a dónde devolver el webhook.
 export class ProcessRefundDto {
   @IsString({ message: 'transactionId debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'transactionId es requerido' })

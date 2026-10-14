@@ -7,6 +7,7 @@ import {
   Index,
 } from 'typeorm';
 
+// Estados del reembolso, del alta hasta el cierre por éxito o por 3 fallos.
 export enum RefundStatus {
   REFUND_PENDING = 'REFUND_PENDING',
   REFUND_PROCESSING = 'REFUND_PROCESSING',
@@ -19,6 +20,7 @@ export class RefundTransaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // Identificador de negocio que viaja al proveedor y vuelve en el webhook.
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 64, unique: true })
   transactionId: string;
@@ -43,6 +45,7 @@ export class RefundTransaction {
   })
   status: RefundStatus;
 
+  // Sube solo cuando un intento falla. El tope del job es 3.
   @Column({ type: 'int', default: 0 })
   attempts: number;
 
@@ -52,6 +55,7 @@ export class RefundTransaction {
   @Column({ type: 'varchar', length: 128, nullable: true, default: null })
   providerRefundId: string | null;
 
+  // Si es true, el proveedor simulado responde FAILURE en cada intento.
   @Column({ type: 'boolean', default: false })
   forceFailure: boolean;
 

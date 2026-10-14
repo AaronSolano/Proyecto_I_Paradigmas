@@ -34,6 +34,7 @@ export class RefundsService {
   async createRefund(
     createRefundDto: CreateRefundDto,
   ): Promise<RefundTransaction> {
+    // Un transactionId solo puede registrarse una vez.
     const existing = await this.refundRepository.findOne({
       where: { transactionId: createRefundDto.transactionId },
     });
@@ -44,6 +45,7 @@ export class RefundsService {
       );
     }
 
+    // Alta inmediata: queda pendiente para que el cron la recoja.
     const refund = this.refundRepository.create({
       transactionId: createRefundDto.transactionId,
       amount: createRefundDto.amount,
@@ -76,6 +78,7 @@ export class RefundsService {
   async handleWebhook(
     dto: WebhookRefundDto,
   ): Promise<{ acknowledged: boolean; message?: string }> {
+    // Localiza la orden que el proveedor está notificando.
     const refund = await this.refundRepository.findOne({
       where: { transactionId: dto.transactionId },
     });
@@ -89,7 +92,7 @@ export class RefundsService {
       );
     }
 
-    // Protección de idempotencia si ya se encuentra en un estado terminal
+    // Un segundo aviso no reabre una orden ya cerrada.
     if (
       refund.status === RefundStatus.REFUNDED ||
       refund.status === RefundStatus.REFUND_FAILED
@@ -100,6 +103,7 @@ export class RefundsService {
       return { acknowledged: true, message: 'Transacción ya finalizada' };
     }
 
+    // Éxito: estado final y el id que devolvió el proveedor.
     if (dto.status === 'SUCCESS') {
       refund.status = RefundStatus.REFUNDED;
       if (dto.providerRefundId) {
@@ -112,7 +116,7 @@ export class RefundsService {
       return { acknowledged: true };
     }
 
-    // Si status === 'FAILURE'
+    // Fallo: suma un intento. Al tercero cierra; si no, vuelve a la cola del cron.
     const newAttempts = refund.attempts + 1;
     refund.attempts = newAttempts;
     refund.lastAttempt = new Date();
@@ -139,7 +143,7 @@ export class RefundsService {
    * Método invocado por la tarea programada periódica.
    */
   async processPendingRefunds(): Promise<void> {
-    // Seleccionar transacciones en REFUND_PENDING con menos de 3 intentos
+    // Solo pendientes con intentos disponibles. El lote se limita a 20.
     const pendingRefunds = await this.refundRepository.find({
       where: {
         status: RefundStatus.REFUND_PENDING,
@@ -164,7 +168,7 @@ export class RefundsService {
       'http://localhost:4000/api/webhooks/refund';
 
     for (const refund of pendingRefunds) {
-      // Transición atómica preventiva a REFUND_PROCESSING
+      // Pasa a PROCESSING antes del POST para no despacharla dos veces.
       refund.status = RefundStatus.REFUND_PROCESSING;
       await this.refundRepository.save(refund);
 
@@ -188,7 +192,7 @@ export class RefundsService {
           `[REFUND-JOB] Reembolso TRX: ${refund.transactionId} despachado exitosamente al proveedor.`,
         );
       } catch (error: any) {
-        // En caso de fallo inmediato de red o indisponibilidad del proveedor
+        // Si el proveedor ni siquiera acepta la petición, el intento se cuenta aquí.
         const newAttempts = refund.attempts + 1;
         refund.attempts = newAttempts;
         refund.lastAttempt = new Date();

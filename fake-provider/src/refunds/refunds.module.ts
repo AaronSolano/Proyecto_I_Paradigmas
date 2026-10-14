@@ -3,6 +3,7 @@ import { HttpModule } from '@nestjs/axios';
 import { RefundsController } from './refunds.controller';
 import { RefundsService } from './refunds.service';
 
+// Expone POST /provider/refunds y el cliente HTTP del webhook de vuelta.
 @Module({
   imports: [
     HttpModule.register({

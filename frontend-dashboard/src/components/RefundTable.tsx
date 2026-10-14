@@ -7,17 +7,20 @@ interface RefundTableProps {
   isLoading: boolean;
 }
 
+// Tabla del historial, con filtro por estado y búsqueda por id.
 export const RefundTable: React.FC<RefundTableProps> = ({ refunds, isLoading }) => {
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Copia el id de la fila al portapapeles.
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(text);
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  // Aplica el filtro de estado y el texto de búsqueda.
   const filteredRefunds = useMemo(() => {
     return refunds.filter((item) => {
       const matchesStatus =
@@ -32,6 +35,7 @@ export const RefundTable: React.FC<RefundTableProps> = ({ refunds, isLoading }) 
     });
   }, [refunds, filterStatus, searchQuery]);
 
+  // Fecha corta para las columnas de intento y creación.
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
     try {

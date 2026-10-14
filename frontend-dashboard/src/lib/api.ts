@@ -1,5 +1,6 @@
 import { CreateRefundPayload, RefundTransaction } from '@/types/refund';
 
+// Base de la API. En el navegador apunta a localhost:4000, no al nombre Docker.
 const getApiBaseUrl = (): string => {
   const envUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (!envUrl) {
@@ -9,6 +10,7 @@ const getApiBaseUrl = (): string => {
   return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/$/, '')}/api`;
 };
 
+// Consulta del polling del dashboard.
 export async function fetchRefunds(): Promise<RefundTransaction[]> {
   const baseUrl = getApiBaseUrl();
   const response = await fetch(`${baseUrl}/refunds`, {
@@ -30,6 +32,7 @@ export async function fetchRefunds(): Promise<RefundTransaction[]> {
   return data;
 }
 
+// Alta de un reembolso. El estado inicial lo define el backend.
 export async function createRefund(
   payload: CreateRefundPayload,
 ): Promise<RefundTransaction> {

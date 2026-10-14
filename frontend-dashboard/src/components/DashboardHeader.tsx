@@ -8,6 +8,7 @@ interface DashboardHeaderProps {
   onManualRefresh: () => void;
 }
 
+// Título del panel y tarjetas de conteo por estado.
 export const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   metrics,
   lastUpdated,

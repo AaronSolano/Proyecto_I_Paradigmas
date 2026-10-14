@@ -1,5 +1,6 @@
 import { IsIn, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
+// Aviso del proveedor: SUCCESS cierra la orden, FAILURE dispara el reintento.
 export class WebhookRefundDto {
   @IsString({ message: 'transactionId debe ser una cadena de texto' })
   @IsNotEmpty({ message: 'transactionId es requerido' })

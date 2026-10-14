@@ -7,6 +7,7 @@ import { RefundsController } from './refunds.controller';
 import { WebhooksController } from './webhooks.controller';
 import { RefundsScheduler } from './refunds.scheduler';
 
+// API de reembolsos, receptor del webhook y el job periódico.
 @Module({
   imports: [TypeOrmModule.forFeature([RefundTransaction]), HttpModule],
   controllers: [RefundsController, WebhooksController],

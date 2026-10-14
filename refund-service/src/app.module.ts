@@ -4,12 +4,15 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RefundsModule } from './refunds/refunds.module';
 
+// Módulo raíz: variables de entorno, cron y conexión a PostgreSQL.
 @Module({
   imports: [
+    // .env local; en Docker las variables llegan por Compose.
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env', '.env.local'],
     }),
+    // Habilita los jobs @Cron del scheduler de reembolsos.
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -31,6 +34,7 @@ import { RefundsModule } from './refunds/refunds.module';
         const baseOptions = {
           type: 'postgres' as const,
           autoLoadEntities: true,
+          // En local crea o ajusta tablas al arrancar; no hay migraciones.
           synchronize:
             configService.get<string>('DB_SYNCHRONIZE', 'true') === 'true',
           retryAttempts: 10,

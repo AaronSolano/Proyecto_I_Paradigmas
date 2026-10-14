@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { LokiLogger } from './common/loki.logger';
 
+// Arranque de la API de reembolsos: prefijo /api, validación y logs hacia Loki.
 async function bootstrap(): Promise<void> {
   const lokiLogger = new LokiLogger('Bootstrap', 'refund-service');
   const app = await NestFactory.create(AppModule, {

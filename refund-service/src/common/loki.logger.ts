@@ -1,6 +1,7 @@
 import { ConsoleLogger, Injectable, Scope } from '@nestjs/common';
 import axios from 'axios';
 
+// Loki exige timestamps en nanosegundos y estrictamente crecientes.
 let lastNano = 0n;
 function getNextNano(): string {
   let nano = BigInt(Date.now()) * 1000000n;
@@ -11,6 +12,7 @@ function getNextNano(): string {
   return nano.toString();
 }
 
+// Escribe en consola y, si hay LOKI_URL, reenvía la misma línea a Loki.
 @Injectable({ scope: Scope.TRANSIENT })
 export class LokiLogger extends ConsoleLogger {
   private readonly lokiUrl: string | undefined;
@@ -44,6 +46,7 @@ export class LokiLogger extends ConsoleLogger {
     this.pushToLoki('debug', message, optionalParams);
   }
 
+  // Envío aparte del flujo de negocio: si Loki no responde, el reembolso sigue.
   private pushToLoki(level: string, message: any, optionalParams: any[]): void {
     if (!this.lokiUrl) {
       return;

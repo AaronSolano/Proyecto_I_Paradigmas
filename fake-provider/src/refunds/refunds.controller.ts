@@ -8,6 +8,7 @@ import {
 import { RefundsService } from './refunds.service';
 import { ProcessRefundDto } from './dto/process-refund.dto';
 
+// Acepta el reembolso y responde 202 antes de simular el banco.
 @Controller('refunds')
 export class RefundsController {
   constructor(private readonly refundsService: RefundsService) {}

@@ -2,6 +2,7 @@ import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { RefundsService } from './refunds.service';
 import { WebhookRefundDto } from './dto/webhook-refund.dto';
 
+// POST /api/webhooks/refund: el proveedor avisa SUCCESS o FAILURE.
 @Controller('webhooks')
 export class WebhooksController {
   constructor(private readonly refundsService: RefundsService) {}

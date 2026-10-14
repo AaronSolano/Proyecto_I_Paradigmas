@@ -24,6 +24,7 @@ export class RefundsService {
    * Ejecuta el procesamiento de reembolso en segundo plano de manera no bloqueante.
    */
   processRefundAsync(dto: ProcessRefundDto): void {
+    // No se espera: el 202 ya salió y la simulación sigue en segundo plano.
     this.executeAsyncSimulation(dto).catch((error: any) => {
       this.logger.error(
         `[PROVIDER] Error no controlado durante simulación para TRX: ${dto.transactionId}: ${error?.message}`,
@@ -47,6 +48,7 @@ export class RefundsService {
     const delayMs =
       Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
 
+    // Espera simulada del banco, entre 2 y 4 segundos.
     this.logger.log(
       `[PROVIDER] Solicitud de reembolso recibida para TRX: ${dto.transactionId}. Simulando retardo de ${delayMs}ms...`,
     );
@@ -54,7 +56,7 @@ export class RefundsService {
     // Retardo no bloqueante con Promesa (2 a 4 segundos)
     await new Promise((resolve) => setTimeout(resolve, delayMs));
 
-    // Resolución de veredicto
+    // forceFailure siempre falla; si no, puede fallar por la tasa configurada.
     let status: 'SUCCESS' | 'FAILURE' = 'SUCCESS';
     let message = 'Operación autorizada con éxito';
 
@@ -84,7 +86,7 @@ export class RefundsService {
       `[PROVIDER] Notificando Webhook en ${dto.webhookCallbackUrl} con estado ${status} (ID: ${providerRefundId}) para TRX: ${dto.transactionId}`,
     );
 
-    // Despacho HTTP POST con Axios hacia la URL de callback del Webhook
+    // Aviso de vuelta al refund-service. Un fallo aquí no reintenta el webhook.
     try {
       const response = await firstValueFrom(
         this.httpService.post(dto.webhookCallbackUrl, result, {

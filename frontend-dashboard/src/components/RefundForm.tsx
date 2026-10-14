@@ -6,6 +6,7 @@ interface RefundFormProps {
   isSubmitting: boolean;
 }
 
+// Formulario de alta. forceFailure hace que el proveedor falle los 3 intentos.
 export const RefundForm: React.FC<RefundFormProps> = ({
   onSubmitRefund,
   isSubmitting,
@@ -30,6 +31,7 @@ export const RefundForm: React.FC<RefundFormProps> = ({
     message: string;
   } | null>(null);
 
+  // Rellena otro id de demostración, con prefijo TRX-FAIL si el fallo está activo.
   const handleGenerateRandomId = () => {
     setTransactionId(generateRandomId(forceFailure));
     setFeedback(null);
@@ -44,6 +46,7 @@ export const RefundForm: React.FC<RefundFormProps> = ({
     setFeedback(null);
   };
 
+  // Valida monto e id y envía la orden al dashboard.
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFeedback(null);
